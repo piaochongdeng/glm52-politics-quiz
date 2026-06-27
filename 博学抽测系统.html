@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>博学抽测 · 多学科智能抽测系统</title>
+<style>
+:root {
+    --primary: #8b6f47; --primary-light: #c4a77d; --primary-bg: #f5efe6;
+    --success: #5a7a52; --success-bg: #eef4ea; --danger: #9b3a3a; --danger-bg: #f7eded;
+    --warning: #b8860b; --warning-bg: #faf3e3; --text: #2c2418; --text-secondary: #7a6f5f;
+    --border: #e0d8c8; --card-bg: #fffdf8; --body-bg: #faf6ef;
+    --gold: #c9a961; --gold-light: #e8d9b5;
+    --shadow: 0 2px 8px rgba(139,111,71,.1); --shadow-lg: 0 12px 30px rgba(139,111,71,.15);
+    --radius: 16px; --radius-sm: 11px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei","Helvetica Neue",sans-serif;
+    background:var(--body-bg);color:var(--text);min-height:100vh;font-size:17px;
+}
+.app-header{
+    background:linear-gradient(135deg,#5a4a3a 0%,#8b6f47 50%,#c9a961 100%);color:#fff;
+    padding:32px 20px 26px;text-align:center;position:relative;overflow:hidden;
+}
+.app-header::before{
+    content:'';position:absolute;top:0;left:0;right:0;height:3px;
+    background:linear-gradient(90deg,transparent,#c9a961,#f5e6c8,#c9a961,transparent);
+}
+.app-header::after{
+    content:'';position:absolute;inset:0;
+    background:url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23c9a961' fill-opacity='.06'%3E%3Cpath d='M40 0L50 30L80 40L50 50L40 80L30 50L0 40L30 30Z'/%3E%3C/g%3E%3C/svg%3E");
+    opacity:.5;
+}
+.app-header h1{font-size:28px;font-weight:700;position:relative;letter-spacing:2px;text-shadow:0 2px 4px rgba(0,0,0,.2)}
+.app-header h1 .subtitle{font-size:14px;font-weight:400;display:block;margin-top:4px;letter-spacing:1px;opacity:.9}
+.app-header p{font-size:15px;opacity:.85;margin-top:8px;position:relative}
+
+.stats-bar{
+    display:flex;justify-content:center;gap:20px;padding:15px 16px;
+    background:var(--card-bg);border-bottom:1px solid var(--border);font-size:15px;flex-wrap:wrap;
+    box-shadow:var(--shadow);
+}
+.stats-bar .stat-item{display:flex;align-items:center;gap:5px}
+.stats-bar .stat-item .num{font-weight:700;color:var(--primary);min-width:22px;font-size:17px}
+
+.unit-tabs{
+    display:flex;background:var(--card-bg);border-bottom:2px solid var(--border);
+    overflow-x:auto;-webkit-overflow-scrolling:touch;
+}
+.unit-tab{
+    flex:1;min-width:100px;padding:13px 10px;text-align:center;font-size:15px;
+    font-weight:600;color:var(--text-secondary);cursor:pointer;border:none;
+    background:none;transition:all .25s;position:relative;white-space:nowrap;
+}
+.unit-tab.active{color:var(--primary)}
+.unit-tab.active::after{
+    content:'';position:absolute;bottom:-2px;left:15%;right:15%;height:3px;
+    background:linear-gradient(90deg,var(--gold),var(--primary-light),var(--gold));border-radius:3px 3px 0 0;
+}
+.unit-tab:hover{color:var(--primary)}
+.unit-tab .badge{
+    display:inline-block;font-size:11px;background:var(--primary-bg);color:var(--primary);
+    border-radius:10px;padding:0 7px;margin-left:4px;font-weight:600;
+}
+.unit-tab.active .badge{background:var(--primary);color:#fff}
+
+.main-content{max-width:880px;margin:0 auto;padding:18px}
+
+.mode-switcher{
+    display:flex;gap:10px;background:var(--card-bg);border-radius:var(--radius);
+    padding:7px;box-shadow:var(--shadow);margin-bottom:18px;
+    border:1px solid var(--border);
+}
+.mode-btn{
+    flex:1;padding:11px 14px;border:none;border-radius:var(--radius-sm);
+    font-size:15px;font-weight:600;cursor:pointer;background:transparent;
+    color:var(--text-secondary);transition:all .25s;
+}
+.mode-btn.active{
+    background:linear-gradient(135deg,var(--primary),var(--gold));color:#fff;
+    box-shadow:0 3px 10px rgba(139,111,71,.3);
+}
+.mode-btn:hover:not(.active){background:var(--primary-bg)}
+
+.grade-mode-switch{
+    display:flex;gap:8px;align-items:center;background:var(--card-bg);
+    border-radius:var(--radius);padding:12px 16px;box-shadow:var(--shadow);margin-bottom:18px;
+    font-size:15px;font-weight:600;border:1px solid var(--border);
+}
+.grade-mode-switch label{cursor:pointer;display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;transition:all .2s;font-size:14px}
+.grade-mode-switch label.active{background:var(--primary-bg);color:var(--primary)}
+.grade-mode-switch input[type=radio]{accent-color:var(--primary);width:18px;height:18px}
+
+.controls{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.controls button{
+    padding:10px 20px;border:none;border-radius:var(--radius-sm);font-size:15px;
+    font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:5px;
+}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--gold));color:#fff}
+.btn-primary:hover{box-shadow:0 3px 12px rgba(139,111,71,.4)}
+.btn-outline{background:var(--card-bg);color:var(--text);border:1px solid var(--border)!important}
+.btn-outline:hover{background:var(--primary-bg);border-color:var(--primary-light)!important}
+.btn-success{background:var(--success);color:#fff}
+.btn-success:hover{background:#4a6a42}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-danger:hover{background:#7b2a2a}
+.btn-warning{background:var(--warning);color:#fff}
+.btn-warning:hover{background:#9a7309}
+
+.status-dots{
+    display:flex;flex-wrap:wrap;gap:7px;padding:18px;background:var(--card-bg);
+    border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:18px;
+    border:1px solid var(--border);
+}
+.status-dots .dot{
+    width:34px;height:34px;border-radius:50%;display:flex;align-items:center;
+    justify-content:center;font-size:13px;font-weight:700;cursor:pointer;
+    transition:all .2s;border:2px solid var(--border);color:var(--text-secondary);background:#fff;
+}
+.status-dots .dot:hover{transform:scale(1.15);border-color:var(--gold)}
+.status-dots .dot.current{border-color:var(--primary);color:var(--primary);box-shadow:0 0 0 4px rgba(139,111,71,.15)}
+.status-dots .dot.known{background:var(--success);border-color:var(--success);color:#fff}
+.status-dots .dot.unknown{background:var(--danger);border-color:var(--danger);color:#fff}
+.status-dots .dot.seen{background:var(--primary-bg);border-color:var(--primary-light);color:var(--primary)}
+
+.question-card{
+    background:var(--card-bg);border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:28px;margin-bottom:18px;animation:fadeIn .3s ease;
+    border:1px solid var(--border);position:relative;
+}
+.question-card::before{
+    content:'';position:absolute;top:0;left:24px;right:24px;height:2px;
+    background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.q-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px}
+.q-number{font-size:16px;font-weight:700;color:var(--primary);background:var(--primary-bg);padding:5px 14px;border-radius:20px}
+.q-unit-label{font-size:14px;color:var(--text-secondary);background:#f1ece2;padding:4px 12px;border-radius:14px}
+.q-title{font-size:20px;font-weight:600;line-height:1.8;margin-bottom:22px;color:var(--text)}
+
+.answer-input-area{margin-bottom:18px}
+.answer-input-area textarea{
+    width:100%;min-height:180px;padding:16px;border:2px solid var(--border);
+    border-radius:var(--radius-sm);font-size:16px;line-height:1.8;resize:vertical;
+    font-family:inherit;transition:border-color .2s;background:#fefdfb;
+}
+.answer-input-area textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(139,111,71,.1)}
+.answer-input-area textarea::placeholder{color:#cdc4b5}
+
+.q-actions{display:flex;gap:10px;flex-wrap:wrap}
+.q-actions button{padding:8px 18px;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-show-answer{background:var(--primary-bg);color:var(--primary)}
+.btn-show-answer:hover{background:var(--primary);color:#fff}
+.btn-known{background:var(--success-bg);color:var(--success)}
+.btn-known:hover{background:var(--success);color:#fff}
+.btn-unknown{background:var(--danger-bg);color:var(--danger)}
+.btn-unknown:hover{background:var(--danger);color:#fff}
+.btn-submit{background:linear-gradient(135deg,var(--primary),var(--gold));color:#fff;font-size:16px;padding:10px 24px}
+.btn-submit:hover{box-shadow:0 3px 12px rgba(139,111,71,.3)}
+.btn-submit:disabled{opacity:.5;cursor:not-allowed}
+
+.grade-result{
+    margin-top:20px;border-top:2px dashed var(--border);padding-top:20px;display:none;
+}
+.grade-result.show{display:block;animation:fadeIn .3s ease}
+.grade-result .grade-header{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.grade-result .grade-score{font-size:36px;font-weight:800;padding:8px 20px;border-radius:var(--radius-sm)}
+.grade-result .grade-score.high{background:var(--success-bg);color:var(--success)}
+.grade-result .grade-score.mid{background:var(--warning-bg);color:var(--warning)}
+.grade-result .grade-score.low{background:var(--danger-bg);color:var(--danger)}
+.grade-result .grade-label{font-size:16px;font-weight:600;color:var(--text)}
+.grade-result .grade-comment{background:#f8f5ef;padding:16px;border-radius:var(--radius-sm);font-size:16px;line-height:1.9;white-space:pre-wrap}
+.grade-result .grade-detail{margin-top:12px;font-size:15px;color:var(--text-secondary);line-height:1.8}
+.grade-result .grade-detail .point{display:flex;align-items:flex-start;gap:8px;margin-bottom:6px}
+.grade-result .grade-detail .point .icon{font-size:18px;flex-shrink:0;margin-top:2px}
+.grade-result .grade-detail .point.got{color:var(--success)}
+.grade-result .grade-detail .point.miss{color:var(--danger)}
+
+.answer-area{margin-top:20px;border-top:2px dashed var(--border);padding-top:20px;display:none}
+.answer-area.show{display:block;animation:fadeIn .3s ease}
+.answer-area .label{font-size:14px;font-weight:700;color:var(--success);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.answer-area .content{font-size:16px;line-height:2;color:#2c2418}
+.answer-area .content p{margin-bottom:8px}
+.answer-area .content .key-point{color:var(--primary);font-weight:600}
+.answer-area .content .en-text{color:var(--text);font-style:italic;background:#f8f5ef;padding:2px 6px;border-radius:4px}
+
+.key-points-area{margin-top:14px;padding:14px 18px;background:var(--warning-bg);border-radius:var(--radius-sm);font-size:15px;line-height:1.9;border-left:3px solid var(--warning)}
+.key-points-area .kp-title{font-weight:700;color:var(--warning);margin-bottom:6px;font-size:14px}
+.key-points-area li{margin-bottom:4px;margin-left:20px}
+
+.stat-panel{background:var(--card-bg);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px;margin-bottom:18px;display:none;border:1px solid var(--border)}
+.stat-panel.show{display:block;animation:fadeIn .3s ease}
+.stat-panel h3{font-size:18px;margin-bottom:14px;color:var(--text)}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px}
+.stat-card{padding:16px;border-radius:var(--radius-sm);text-align:center;background:var(--body-bg);border:1px solid var(--border)}
+.stat-card .stat-num{font-size:32px;font-weight:800}
+.stat-card .stat-label{font-size:14px;color:var(--text-secondary);margin-top:5px}
+.stat-card.green .stat-num{color:var(--success)}
+.stat-card.red .stat-num{color:var(--danger)}
+.stat-card.blue .stat-num{color:var(--primary)}
+.stat-card.orange .stat-num{color:var(--warning)}
+
+.total-score-panel{background:var(--card-bg);border-radius:var(--radius);box-shadow:var(--shadow-lg);padding:24px;margin-bottom:18px;text-align:center;display:none;border:1px solid var(--border);position:relative}
+.total-score-panel::before{content:'';position:absolute;top:0;left:24px;right:24px;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.total-score-panel.show{display:block;animation:fadeIn .3s ease}
+.total-score-panel .big-score{font-size:64px;font-weight:900;line-height:1}
+.total-score-panel .big-score.high{color:var(--success)}
+.total-score-panel .big-score.mid{color:var(--warning)}
+.total-score-panel .big-score.low{color:var(--danger)}
+.total-score-panel .score-label{font-size:16px;color:var(--text-secondary);margin-top:6px}
+.total-score-panel .score-detail{font-size:14px;color:var(--text-secondary);margin-top:8px}
+
+.loading{display:inline-block;width:20px;height:20px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:500px){
+    .app-header h1{font-size:20px}
+    .stats-bar{font-size:13px;gap:10px}
+    .unit-tab{font-size:13px;padding:10px 6px;min-width:70px}
+    .question-card{padding:18px}
+    .q-title{font-size:17px}
+    .controls button{font-size:13px;padding:8px 14px}
+    .stat-grid{grid-template-columns:repeat(2,1fr)}
+    .grade-result .grade-score{font-size:28px}
+    .total-score-panel .big-score{font-size:48px}
+}
+@media print{
+    .app-header,.stats-bar,.unit-tabs,.mode-switcher,.controls,.status-dots,.q-actions,.stat-panel,.grade-mode-switch,.answer-input-area{display:none!important}
+    .question-card{break-inside:avoid;box-shadow:none;border:1px solid #ddd}
+    .answer-area,.grade-result{display:block!important}
+}
+</style>
+</head>
+<body>
+<div class="app-header">
+    <h1>🎓 博学抽测 <span class="subtitle">多学科智能复习系统</span></h1>
+    <p>英语翻译 · 化学实验 · 语文古诗文 · 智能抽测</p>
+</div>
+<div class="stats-bar">
+    <span class="stat-item">📌 总题数 <span class="num" id="totalCount">0</span></span>
+    <span class="stat-item">✅ 已掌握 <span class="num" id="knownCount">0</span></span>
+    <span class="stat-item">❌ 需复习 <span class="num" id="unknownCount">0</span></span>
+    <span class="stat-item">📖 未看过 <span class="num" id="unseenCount">0</span></span>
+    <span class="stat-item">📊 掌握率 <span class="num" id="masteryRate">0%</span></span>
+</div>
+<div class="unit-tabs" id="unitTabs"></div>
+<div class="main-content">
+    <div class="mode-switcher">
+        <button class="mode-btn active" data-mode="quiz" onclick="setMode('quiz')">🎯 抽测模式</button>
+        <button class="mode-btn" data-mode="review" onclick="setMode('review')">📖 复习模式</button>
+        <button class="mode-btn" data-mode="stats" onclick="setMode('stats')">📊 统计</button>
+    </div>
+    <div class="grade-mode-switch" id="gradeModeSwitch">
+        <span>🔍 批改方式：</span>
+        <label class="active"><input type="radio" name="gradeMode" value="ai" checked onchange="switchGradeMode('ai')">🤖 AI智能批改</label>
+        <label><input type="radio" name="gradeMode" value="auto" onchange="switchGradeMode('auto')">📋 要点自动批改</label>
+    </div>
+    <div class="controls" id="controls">
+        <button class="btn-primary" onclick="nextQuestion()">🎲 随机一题</button>
+        <button class="btn-outline" onclick="resetUnitProgress()">🔄 重置本单元</button>
+        <button class="btn-danger" onclick="resetAllProgress()">⚠️ 全部重置</button>
+    </div>
+    <div class="status-dots" id="statusDots"></div>
+    <div class="total-score-panel" id="totalScorePanel"></div>
+    <div id="questionArea"></div>
+    <div id="statPanel" class="stat-panel"></div>
+</div>
+<script>
+// ===== API KEY 配置 =====
+const API_BASE = 'http://101.34.88.90:3000/v1';
+const API_MODEL = 'agnes-2.0-flash';
+let API_KEY = localStorage.getItem('boxue_api_key') || '';
+
+// ===== 题库数据 =====
+const ALL_QUESTIONS = [
+  // ===== 英语 Unit 1 =====
+  {id:1,unit:1,unitName:'英语U1',title:'这些艺术家们何时开始在建筑物上画画的？他认为他们在5年前开始的。',answer:'<p><span class="key-point">英文：</span><span class="en-text">When did these artists start painting on buildings? He thinks they started five years ago.</span></p><p><span class="key-point">要点：</span>When did...start（一般过去时疑问句）；paint on buildings；five years ago（五年前，一般过去时标志）</p>',keyPoints:['When did...start 一般过去时','paint on buildings','five years ago 五年前']},
+  {id:2,unit:1,unitName:'英语U1',title:'现代最伟大的作家之一在看到一个士兵想方设法帮助处于困境的人时改变了想法。',answer:'<p><span class="key-point">英文：</span><span class="en-text">One of the greatest modern writers changed his mind when he saw a soldier trying every means to help people in trouble.</span></p><p><span class="key-point">要点：</span>one of the greatest modern writers（最伟大的现代作家之一）；change ones mind（改变想法）；try every means to do（想方设法做）；in trouble（处于困境）</p>',keyPoints:['one of the+最高级+复数名词','change ones mind 改变想法','try every means to do 想方设法','in trouble 处于困境']},
+  {id:3,unit:1,unitName:'英语U1',title:'她几岁的时候参加了京剧比赛？我看见她表演是在她12岁。',answer:'<p><span class="key-point">英文：</span><span class="en-text">How old was she when she took part in the Beijing Opera Competition? I saw her play when she was twelve.</span></p><p><span class="key-point">要点：</span>How old was she when...；take part in（参加）；see sb. do sth.（看见某人做某事）</p>',keyPoints:['How old was she when 疑问句','take part in 参加','see sb. do sth. 看见某人做','twelve 十二岁']},
+  {id:4,unit:1,unitName:'英语U1',title:'这个钢琴家为什么让小提琴家在车站等了四个半小时？因为糟糕的天气。',answer:'<p><span class="key-point">英文：</span><span class="en-text">Why did the pianist keep the violinist waiting at the station for four and a half hours? Because of the bad weather.</span></p><p><span class="key-point">要点：</span>keep sb. doing sth.（让某人一直做）；four and a half hours（四个半小时）；because of + 名词</p>',keyPoints:['keep sb. doing sth. 让某人一直做','four and a half hours 四个半小时','because of+名词 因为','at the station 在车站']},
+  {id:5,unit:1,unitName:'英语U1',title:'到目前为止，他鼓励了我好几次去赢得文学奖。',answer:'<p><span class="key-point">英文：</span><span class="en-text">So far, he has encouraged me several times to win the literature prizes.</span></p><p><span class="key-point">要点：</span>so far（现在完成时标志）；encourage sb. to do sth.；several times；win the literature prizes</p>',keyPoints:['so far 现在完成时标志','encourage sb. to do sth. 鼓励做','several times 好几次','win the literature prizes 赢得文学奖']},
+  {id:6,unit:1,unitName:'英语U1',title:'这个音乐家的小说上个月出版并且人们认为它能触及读者的心灵。',answer:'<p><span class="key-point">英文：</span><span class="en-text">The musicians novel was published last month and people think it can touch the hearts of the readers.</span></p><p><span class="key-point">要点：</span>be published（被动语态）；last month（一般过去时）；touch the hearts of...（触及心灵）</p>',keyPoints:['be published 被出版 被动语态','last month 上个月','touch the hearts of 触及心灵','the readers 读者']},
+
+  // ===== 英语 Unit 2 =====
+  {id:7,unit:2,unitName:'英语U2',title:'他们的化学老师建议参加社团活动，是不是？是的。',answer:'<p><span class="key-point">英文：</span><span class="en-text">Their chemistry teacher suggested attending the community events, didnt he? Yes, he did.</span></p><p><span class="key-point">要点：</span>suggest doing sth.；attend community events；反意疑问句前肯后否</p>',keyPoints:['suggest doing sth. 建议做','attend community events 参加社团活动','反意疑问句 前肯后否','Yes,he did 是的']},
+  {id:8,unit:2,unitName:'英语U2',title:'他有很长一段时间没有和你谈论私人话题了，是不是？不，谈过。',answer:'<p><span class="key-point">英文：</span><span class="en-text">He hasnt talked about private subjects with you for a long time, has he? Yes, he has.</span></p><p><span class="key-point">要点：</span>现在完成时反意疑问句；talk about private subjects；for a long time；Yes翻译为"谈过"</p>',keyPoints:['现在完成时反意疑问句','talk about private subjects 谈论私人话题','for a long time 很长时间','Yes,he has 翻译为谈过']},
+  {id:9,unit:2,unitName:'英语U2',title:'总而言之，这是个很好的介绍你自己的机会。',answer:'<p><span class="key-point">英文：</span><span class="en-text">In general, this is a great chance to introduce yourself.</span></p><p><span class="key-point">要点：</span>in general（总而言之）；a great chance to do sth.；introduce oneself</p>',keyPoints:['in general 总而言之','a great chance to do sth. 做某事的好机会','introduce yourself 介绍你自己']},
+  {id:10,unit:2,unitName:'英语U2',title:'角落的那个顾客感到尴尬又紧张，于是他离开了展览。',answer:'<p><span class="key-point">英文：</span><span class="en-text">The customer in the corner felt so embarrassed and nervous that he left the exhibition.</span></p><p><span class="key-point">要点：</span>in the corner；so...that...（如此以至于）；embarrassed and nervous；leave the exhibition</p>',keyPoints:['in the corner 在角落','so...that... 如此以至于','embarrassed and nervous 尴尬又紧张','leave the exhibition 离开展览']},
+  {id:11,unit:2,unitName:'英语U2',title:'在剧院排队的时候，他听到了一首充满感情的歌曲。',answer:'<p><span class="key-point">英文：</span><span class="en-text">He heard a song full of feelings when he was waiting in line at the theater.</span></p><p><span class="key-point">要点：</span>hear a song；full of feelings；wait in line；at the theater</p>',keyPoints:['hear a song 听到一首歌','full of feelings 充满感情','wait in line 排队','at the theater 在剧院']},
+  {id:12,unit:2,unitName:'英语U2',title:'在服务顾客的时候，使对话轻松幽默是必须的。',answer:'<p><span class="key-point">英文：</span><span class="en-text">It is necessary to keep the conversation light and humorous while serving the customers.</span></p><p><span class="key-point">要点：</span>It is necessary to do sth.；keep the conversation light and humorous；while doing sth.；serve the customers</p>',keyPoints:['It is necessary to do sth. 做某事是必须的','keep the conversation 使对话','light and humorous 轻松幽默','while serving 服务时']},
+
+  // ===== 英语 Unit 3 =====
+  {id:13,unit:3,unitName:'英语U3',title:'巴黎不但是法国首都而且是欧洲最有活力的城市之一。',answer:'<p><span class="key-point">英文：</span><span class="en-text">Paris is not only the capital of France but also one of the liveliest cities in Europe.</span></p><p><span class="key-point">要点：</span>not only...but also...；the capital of France；one of the liveliest cities（最高级+复数）</p>',keyPoints:['not only...but also... 不但而且','the capital of France 法国首都','one of the liveliest cities 最有活力的城市之一','liveliest lively最高级']},
+  {id:14,unit:3,unitName:'英语U3',title:'你想和谁在暑假一起去迷人的海滩旅行？我想和我的亲戚们一起去。',answer:'<p><span class="key-point">英文：</span><span class="en-text">Who would you like to go to the fascinating beach with this summer vacation? I want to go with my relatives.</span></p><p><span class="key-point">要点：</span>would like to do sth.；fascinating beach；summer vacation；with relatives</p>',keyPoints:['would like to do sth. 想要做','fascinating beach 迷人的海滩','summer vacation 暑假','with relatives 和亲戚一起']},
+  {id:15,unit:3,unitName:'英语U3',title:'根据调查，在学生当中，电脑编程是最受欢迎的选择之一。',answer:'<p><span class="key-point">英文：</span><span class="en-text">According to the survey, computer programming is one of the most popular choices among students.</span></p><p><span class="key-point">要点：</span>according to；computer programming；one of the most popular choices；among students</p>',keyPoints:['according to 根据','computer programming 电脑编程','one of the most popular choices 最受欢迎的选择之一','among students 在学生当中']},
+  {id:16,unit:3,unitName:'英语U3',title:'他问我去画廊坐地铁方不方便。',answer:'<p><span class="key-point">英文：</span><span class="en-text">He asked me if it was convenient to get to the gallery by subway.</span></p><p><span class="key-point">要点：</span>ask sb. if...（宾语从句）；it is convenient to do sth.；get to the gallery；by subway</p>',keyPoints:['ask sb. if 宾语从句','it is convenient to do sth. 方便做某事','get to the gallery 到画廊','by subway 坐地铁']},
+  {id:17,unit:3,unitName:'英语U3',title:'从去年开始，他收到了很多翻译家的来信。',answer:'<p><span class="key-point">英文：</span><span class="en-text">He has received many letters from translators since last year.</span></p><p><span class="key-point">要点：</span>现在完成时；receive letters；from translators；since last year（完成时标志）</p>',keyPoints:['现在完成时 has received','receive letters 收到信','from translators 来自翻译家','since last year 完成时标志']},
+  {id:18,unit:3,unitName:'英语U3',title:'这些运动员乐意横渡太平洋去实现他们的梦想吗？',answer:'<p><span class="key-point">英文：</span><span class="en-text">Are these sportspeople willing to sail across the Pacific Ocean to achieve their dreams?</span></p><p><span class="key-point">要点：</span>be willing to do sth.；sail across；the Pacific Ocean；achieve ones dreams</p>',keyPoints:['be willing to do sth. 乐意做','sail across 横渡','the Pacific Ocean 太平洋','achieve dreams 实现梦想']},
+
+  // ===== 英语 Unit 4 =====
+  {id:19,unit:4,unitName:'英语U4',title:'他发现大声朗读来改善发音很有用。',answer:'<p><span class="key-point">英文：</span><span class="en-text">He found it useful to read aloud to improve his pronunciation.</span></p><p><span class="key-point">要点：</span>find it + adj. + to do sth.；read aloud；improve pronunciation</p>',keyPoints:['find it adj. to do sth. 发现做某事','read aloud 大声朗读','improve pronunciation 改善发音']},
+  {id:20,unit:4,unitName:'英语U4',title:'为什么不通过记笔记来记住语法呢？',answer:'<p><span class="key-point">英文：</span><span class="en-text">Why not remember grammar by taking notes?</span></p><p><span class="key-point">要点：</span>Why not do sth.?；remember grammar；by doing sth.；take notes</p>',keyPoints:['Why not do sth.? 为什么不做','remember grammar 记住语法','by doing sth. 通过做某事','take notes 记笔记']},
+  {id:21,unit:4,unitName:'英语U4',title:'他对我如此耐心以至于他每周六和我一起听磁带。',answer:'<p><span class="key-point">英文：</span><span class="en-text">He is so patient with me that he listens to the tape with me every Saturday.</span></p><p><span class="key-point">要点：</span>be patient with sb.；so...that...；listen to the tape；every Saturday</p>',keyPoints:['be patient with sb. 对某人有耐心','so...that... 如此以至于','listen to the tape 听磁带','every Saturday 每周六']},
+  {id:22,unit:4,unitName:'英语U4',title:'他如何为考试学习的？通过课堂专注和小组学习。',answer:'<p><span class="key-point">英文：</span><span class="en-text">How does he study for the exam? By paying attention in class and working with a group.</span></p><p><span class="key-point">要点：</span>How疑问句；study for the exam；by doing sth.；pay attention in class；work with a group</p>',keyPoints:['How 疑问句','study for the exam 为考试学习','pay attention in class 课堂专注','work with a group 小组学习']},
+  {id:23,unit:4,unitName:'英语U4',title:'为什么他发现学好物理和化学很难？',answer:'<p><span class="key-point">英文：</span><span class="en-text">Why does he find it difficult to learn physics and chemistry well?</span></p><p><span class="key-point">要点：</span>Why疑问句；find it + adj. + to do sth.；learn sth. well；physics and chemistry</p>',keyPoints:['Why 疑问句','find it adj. to do sth. 发现做某事','learn sth. well 学好某事','physics and chemistry 物理和化学']},
+  {id:24,unit:4,unitName:'英语U4',title:'他可以通过观察他们的肢体语言和面部表情来理解句子。',answer:'<p><span class="key-point">英文：</span><span class="en-text">I can understand sentences by watching their body language and expressions on their faces.</span></p><p><span class="key-point">要点：</span>by doing sth.；watch body language；expressions on their faces；understand sentences</p>',keyPoints:['by doing sth. 通过做某事','watch body language 观察肢体语言','expressions on faces 面部表情','understand sentences 理解句子']},
+
+  // ===== 英语 Unit 5 =====
+  {id:25,unit:5,unitName:'英语U5',title:'他告诉我他吃了很多的传统甜品胖了5磅。',answer:'<p><span class="key-point">英文：</span><span class="en-text">He told me he ate so many desserts that he put on 5 pounds.</span></p><p><span class="key-point">要点：</span>tell sb.+宾语从句；so...that...；desserts；put on 5 pounds</p>',keyPoints:['tell sb. 宾语从句','so...that... 如此以至于','desserts 甜品','put on 5 pounds 胖了5磅']},
+  {id:26,unit:5,unitName:'英语U5',title:'小偷因为偷了花园里的礼物受到惩罚。',answer:'<p><span class="key-point">英文：</span><span class="en-text">The thief was punished for stealing presents in the garden.</span></p><p><span class="key-point">要点：</span>be punished（被动语态）；be punished for doing sth.；steal presents；in the garden</p>',keyPoints:['be punished 被惩罚 被动语态','be punished for doing 因做某事受惩罚','steal presents 偷礼物','in the garden 在花园里']},
+  {id:27,unit:5,unitName:'英语U5',title:'你能告诉这个外国人怎么看我们的传统节日？',answer:'<p><span class="key-point">英文：</span><span class="en-text">Can you tell me what the foreigner thinks of our traditional festivals?</span></p><p><span class="key-point">要点：</span>Can you tell me...（宾语从句）；what does sb. think of...；traditional festivals</p>',keyPoints:['Can you tell me 宾语从句','what think of 看法','traditional festivals 传统节日','the foreigner 外国人']},
+  {id:28,unit:5,unitName:'英语U5',title:'他以前老对别人不好，但是现在他的态度改变了很多。',answer:'<p><span class="key-point">英文：</span><span class="en-text">He didnt use to treat others nicely, but now his attitude has changed a lot.</span></p><p><span class="key-point">要点：</span>used to do sth.否定didnt use to；treat sb. nicely；attitude has changed（现在完成时）；a lot</p>',keyPoints:['used to do sth. 过去常常做 否定didnt use to','treat others nicely 对别人好','attitude has changed 现在完成时','a lot 很多']},
+  {id:29,unit:5,unitName:'英语U5',title:'观看龙舟比赛真刺激啊！',answer:'<p><span class="key-point">英文：</span><span class="en-text">How exciting it is to watch the dragon boat races!</span></p><p><span class="key-point">要点：</span>How引导感叹句（How+adj.+S+V!）；it is adj. to do sth.；watch the dragon boat races</p>',keyPoints:['How 感叹句 How adj. S V','it is adj. to do sth.','watch the dragon boat races 观看龙舟比赛','exciting 令人兴奋的']},
+  {id:30,unit:5,unitName:'英语U5',title:'他决定改变他的坏习惯并且承诺养成健康的爱好。',answer:'<p><span class="key-point">英文：</span><span class="en-text">He decided to change his bad habits and promised to form/develop healthy hobbies.</span></p><p><span class="key-point">要点：</span>decide to do sth.；change bad habits；promise to do sth.；form/develop healthy hobbies</p>',keyPoints:['decide to do sth. 决定做','change bad habits 改变坏习惯','promise to do sth. 承诺做','form/develop healthy hobbies 养成健康爱好']},
+
+  // ===== 英语 Unit 6 =====
+  {id:31,unit:6,unitName:'英语U6',title:'你能告诉我在哪里能邮信吗？三楼有家邮局。',answer:'<p><span class="key-point">英文：</span><span class="en-text">Can you tell me where I can mail a letter? There is a post office on the third floor.</span></p><p><span class="key-point">要点：</span>宾语从句where I can...；mail a letter；There be句型；on the third floor</p>',keyPoints:['宾语从句 where I can','mail a letter 邮信','There be 句型','on the third floor 在三楼']},
+  {id:32,unit:6,unitName:'英语U6',title:'你知道这附近的餐馆下个月营不营业？',answer:'<p><span class="key-point">英文：</span><span class="en-text">Do you know if the restaurants around here are open next month?</span></p><p><span class="key-point">要点：</span>Do you know if...（宾语从句）；around here；be open；next month</p>',keyPoints:['Do you know if 宾语从句','around here 这附近','be open 营业','next month 下个月']},
+  {id:33,unit:6,unitName:'英语U6',title:'职员有礼貌的建议他们去市场和中心大街的拐角处找展厅。',answer:'<p><span class="key-point">英文：</span><span class="en-text">The clerk politely advised them to look for the exhibition hall on the corner of Market and Center Street.</span></p><p><span class="key-point">要点：</span>advise sb. to do sth.；look for；on the corner of...；exhibition hall</p>',keyPoints:['advise sb. to do sth. 建议某人做','look for 寻找','on the corner of 在拐角处','exhibition hall 展厅']},
+  {id:34,unit:6,unitName:'英语U6',title:'你知道视频会议何时开始的吗？我刚在听歌所以忘了参加会议了。',answer:'<p><span class="key-point">英文：</span><span class="en-text">Do you know when the video meeting started? I was listening to music so I forgot to attend the meeting.</span></p><p><span class="key-point">要点：</span>Do you know when...（宾语从句）；video meeting；was listening to music（过去进行时）；forget to do sth.；attend the meeting</p>',keyPoints:['Do you know when 宾语从句','video meeting 视频会议','was listening 过去进行时','forget to do sth. 忘记做']},
+  {id:35,unit:6,unitName:'英语U6',title:'在很多西方国家，向陌生人了截了当的提出问题是不礼貌的。',answer:'<p><span class="key-point">英文：</span><span class="en-text">In many Western countries, it is impolite to ask a stranger a direct question.</span></p><p><span class="key-point">要点：</span>in Western countries；it is adj. to do sth.；ask sb. a question；a direct question</p>',keyPoints:['in Western countries 在西方国家','it is adj. to do sth. 做某事是','ask a stranger a question 问陌生人问题','impolite 不礼貌的']},
+  {id:36,unit:6,unitName:'英语U6',title:'他承诺当我请求他帮助的时候，他很乐意帮我走出困境。',answer:'<p><span class="key-point">英文：</span><span class="en-text">He promised that when I asked him for help, he was willing to help me out.</span></p><p><span class="key-point">要点：</span>promise that...（宾语从句）；ask sb. for help；be willing to do sth.；help sb. out</p>',keyPoints:['promise that 宾语从句','ask sb. for help 请求帮助','be willing to do sth. 乐意做','help sb. out 帮某人走出困境']},
+
+  // ===== 英语 Unit 7 =====
+  {id:37,unit:7,unitName:'英语U7',title:'他以前总是不敢当众演讲，但是现在他改变了很多。',answer:'<p><span class="key-point">英文：</span><span class="en-text">He used to be afraid to give a speech in public, but now he has changed a lot.</span></p><p><span class="key-point">要点：</span>used to do sth.；be afraid to do sth.；give a speech in public；has changed（现在完成时）</p>',keyPoints:['used to do sth. 过去常常做','be afraid to do sth. 不敢做','give a speech in public 当众演讲','has changed 现在完成时']},
+  {id:38,unit:7,unitName:'英语U7',title:'恐怕我无法准确的告诉你他的地址。',answer:'<p><span class="key-point">英文：</span><span class="en-text">I am afraid that I cant tell you his address exactly.</span></p><p><span class="key-point">要点：</span>Im afraid that...；tell sb. sth.；exactly</p>',keyPoints:['Im afraid that 恐怕','tell sb. sth. 告诉某人某事','address 地址','exactly 准确地']},
+  {id:39,unit:7,unitName:'英语U7',title:'他告诉我他准备采访一个著名的欧洲导演。',answer:'<p><span class="key-point">英文：</span><span class="en-text">He told me that he would interview a famous European director.</span></p><p><span class="key-point">要点：</span>tell sb. that...（宾语从句）；would interview（过去将来时）；a famous European director</p>',keyPoints:['tell sb. that 宾语从句','would interview 过去将来时','famous European director 著名欧洲导演']},
+  {id:40,unit:7,unitName:'英语U7',title:'他的老师对他有很大的影响，他不再害怕考试。',answer:'<p><span class="key-point">英文：</span><span class="en-text">His teacher has a great influence on him. He is no longer afraid of examinations.</span></p><p><span class="key-point">要点：</span>have a great influence on sb.；no longer；be afraid of...；examinations</p>',keyPoints:['have a great influence on 对有很大影响','no longer 不再','be afraid of 害怕','examinations 考试']},
+  {id:41,unit:7,unitName:'英语U7',title:'在工作面试里，人们通常被要求做个简单的自我介绍。',answer:'<p><span class="key-point">英文：</span><span class="en-text">People are usually required to give a general self-introduction in a job interview.</span></p><p><span class="key-point">要点：</span>be required to do sth.（被动语态）；give a self-introduction；in a job interview</p>',keyPoints:['be required to do sth. 被要求做 被动语态','give a self-introduction 做自我介绍','in a job interview 在工作面试里','general 简单的']},
+  {id:42,unit:7,unitName:'英语U7',title:'尽管他知道通往成功的道路很艰难，但是他从未放弃并且砥砺前行。',answer:'<p><span class="key-point">英文：</span><span class="en-text">Although he knows the road to success is hard, he never gives up and keeps fighting on.</span></p><p><span class="key-point">要点：</span>Although引导让步状语从句；the road to success；give up；keep fighting on</p>',keyPoints:['Although 让步状语从句','the road to success 通往成功的道路','give up 放弃','keep fighting on 砥砺前行']},
+
+  // ===== 英语 Unit 8 =====
+  {id:43,unit:8,unitName:'英语U8',title:'当不同地区的茶叶长好时，它们被手工采摘并且送去工厂加工。',answer:'<p><span class="key-point">英文：</span><span class="en-text">When tea leaves in different areas are ready, they are picked by hand and sent to factories for processing.</span></p><p><span class="key-point">要点：</span>when时间状语从句；tea leaves；be picked by hand（被动语态）；be sent to...for processing</p>',keyPoints:['when 时间状语从句','tea leaves 茶叶','be picked by hand 被手工采摘 被动语态','be sent to factories 送工厂加工']},
+  {id:44,unit:8,unitName:'英语U8',title:'他的飞机模型是不同材料制成的吗？是的，是钢铁、棉花和树叶制成的。',answer:'<p><span class="key-point">英文：</span><span class="en-text">Is his model plane made of different materials? Yes, it is made of steel, cotton and leaves.</span></p><p><span class="key-point">要点：</span>be made of（由制成，能看出原材料）；different materials；steel, cotton, leaves</p>',keyPoints:['be made of 由制成 能看出原材料','different materials 不同材料','steel/cotton/leaves 钢铁棉花树叶','一般疑问句 Is...']},
+  {id:45,unit:8,unitName:'英语U8',title:'这个银盘不经常用，它是用来招待参赛者们的。',answer:'<p><span class="key-point">英文：</span><span class="en-text">This silver plate is not used very often, it is used to serve the competitors.</span></p><p><span class="key-point">要点：</span>be used（被动语态）；be used to do sth.；serve the competitors；silver plate</p>',keyPoints:['be used 被使用 被动语态','be used to do sth. 被用来做','serve the competitors 招待参赛者','silver plate 银盘']},
+  {id:46,unit:8,unitName:'英语U8',title:'18岁以下的孩子禁止开车，是不是？',answer:'<p><span class="key-point">英文：</span><span class="en-text">Children under 18 arent allowed to drive, are they?</span></p><p><span class="key-point">要点：</span>children under 18；be allowed to do sth.（被动语态）；反意疑问句前否后肯</p>',keyPoints:['children under 18 18岁以下的孩子','be allowed to do sth. 被允许做 被动语态','反意疑问句 前否后肯','drive 开车']},
+  {id:47,unit:8,unitName:'英语U8',title:'教室多久打扫一次？一周五次。',answer:'<p><span class="key-point">英文：</span><span class="en-text">How often is the classroom cleaned? Five times a week.</span></p><p><span class="key-point">要点：</span>How often（提问频率）；be cleaned（被动语态）；five times a week</p>',keyPoints:['How often 多久一次 提问频率','be cleaned 被打扫 被动语态','five times a week 一周五次']},
+  {id:48,unit:8,unitName:'英语U8',title:'这个邮递员想知道这把剪刀是银的还是钢的。',answer:'<p><span class="key-point">英文：</span><span class="en-text">The Postman wants to know whether the scissors are made of silver or steel.</span></p><p><span class="key-point">要点：</span>want to know whether...or...（宾语从句）；scissors（复数）；be made of；silver or steel</p>',keyPoints:['want to know whether...or 宾语从句','scissors 剪刀 复数','be made of 由制成','silver or steel 银还是钢']},
+  {id:49,unit:8,unitName:'英语U8',title:'他的公司因加工手机而广为人知。',answer:'<p><span class="key-point">英文：</span><span class="en-text">His company is well/widely known for making mobile phones.</span></p><p><span class="key-point">要点：</span>be known for；making mobile phones；well/widely known</p>',keyPoints:['be known for 因而闻名','making mobile phones 加工手机','well/widely known 广为人知']},
+  {id:50,unit:8,unitName:'英语U8',title:'他很惊讶因为他发现商店如此多的产品都是德国制造。',answer:'<p><span class="key-point">英文：</span><span class="en-text">He was surprised to find that so many products in the shop were made in Germany.</span></p><p><span class="key-point">要点：</span>be surprised to do sth.；find that...（宾语从句）；be made in（被动语态）；Germany</p>',keyPoints:['be surprised to do sth. 惊讶地做','find that 宾语从句','be made in 在制造 被动语态','Germany 德国']},
+  {id:51,unit:8,unitName:'英语U8',title:'你的手套是什么材质的而且是哪里产的？',answer:'<p><span class="key-point">英文：</span><span class="en-text">What are your gloves made of and where were they made?</span></p><p><span class="key-point">要点：</span>be made of（问材质）；where were they made（被动语态）；gloves（复数）</p>',keyPoints:['be made of 由制成 问材质','where were they made 哪里产的 被动语态','gloves 手套 复数']},
+  {id:52,unit:8,unitName:'英语U8',title:'他告诉我这个周六有运动会。',answer:'<p><span class="key-point">英文：</span><span class="en-text">He told me there would be a sports meeting this Saturday.</span></p><p><span class="key-point">要点：</span>tell sb.+宾语从句；there would be（过去将来时）；sports meeting；this Saturday</p>',keyPoints:['tell sb. 宾语从句','there would be 过去将来时','sports meeting 运动会','this Saturday 这个周六']},
+
+  // ===== 化学制取氧气 =====
+  {id:53,unit:9,unitName:'化学·制氧气',title:'双氧水与二氧化锰制取氧气的反应原理（化学方程式）？',answer:'<p><span class="key-point">文字表达式：</span>过氧化氢 →（二氧化锰催化）→ 水 + 氧气</p><p><span class="key-point">化学方程式：</span>2H₂O₂ —MnO₂→ 2H₂O + O₂↑</p><p>反应物是过氧化氢（H₂O₂）；催化剂是二氧化锰（MnO₂）；生成物是水和氧气；二氧化锰是催化剂，反应前后质量和化学性质不变</p>',keyPoints:['过氧化氢 H₂O₂','二氧化锰 MnO₂ 作催化剂','生成水和氧气','2H₂O₂→2H₂O+O₂↑']},
+  {id:54,unit:9,unitName:'化学·制氧气',title:'双氧水制取氧气的发生装置及选择依据？',answer:'<p><span class="key-point">仪器：</span>分液漏斗、锥形瓶、双孔橡皮塞、导管</p><p><span class="key-point">选择依据：</span>反应物是<span class="key-point">固体和液体</span>，且<span class="key-point">不需要加热</span></p><p>分液漏斗的作用：控制反应的速率</p>',keyPoints:['分液漏斗/锥形瓶/双孔橡皮塞/导管','反应物是固体和液体','不需要加热','分液漏斗控制反应速率']},
+  {id:55,unit:9,unitName:'化学·制氧气',title:'氧气的收集方法和验满、检验方法？',answer:'<p><span class="key-point">收集方法：</span></p><p>①排水法——依据：氧气<span class="key-point">不易溶于水</span></p><p>②向上排空气法——依据：氧气<span class="key-point">密度比空气大</span></p><p><span class="key-point">验满（向上排空气法）：</span>用带火星的木条放在集气瓶<span class="key-point">瓶口</span>，复燃则满</p><p><span class="key-point">检验方法：</span>用带火星的木条放在集气瓶<span class="key-point">中</span>，复燃则是氧气</p>',keyPoints:['排水法 氧气不易溶于水','向上排空气法 氧气密度比空气大','验满 带火星木条放瓶口','检验 带火星木条放瓶中']},
+  {id:56,unit:9,unitName:'化学·制氧气',title:'高锰酸钾制取氧气的反应原理（化学方程式）？',answer:'<p><span class="key-point">文字表达式：</span>高锰酸钾 →（加热）→ 锰酸钾 + 二氧化锰 + 氧气</p><p><span class="key-point">化学方程式：</span>2KMnO₄ —△→ K₂MnO₄ + MnO₂ + O₂↑</p><p>反应物是高锰酸钾（KMnO₄）；需要加热；生成物有三种：锰酸钾、二氧化锰和氧气</p>',keyPoints:['高锰酸钾 KMnO₄','需要加热','生成锰酸钾+二氧化锰+氧气','2KMnO₄→K₂MnO₄+MnO₂+O₂↑']},
+  {id:57,unit:9,unitName:'化学·制氧气',title:'高锰酸钾制取氧气的发生装置及注意事项？',answer:'<p><span class="key-point">仪器：</span>带铁夹的铁架台、试管、单孔橡皮塞、导管、酒精灯</p><p><span class="key-point">选择依据：</span>反应物是<span class="key-point">固体</span>，且<span class="key-point">需要加热</span></p><p><span class="key-point">棉花团的作用：</span>防止加热时高锰酸钾粉末进入导管，堵塞导管</p><p><span class="key-point">结束操作：</span>先把导管移出水面，再熄灭酒精灯——防止水倒吸入试管造成试管炸裂</p>',keyPoints:['铁架台/试管/单孔橡皮塞/导管/酒精灯','反应物是固体 需要加热','棉花团防止粉末堵塞导管','先移导管再熄灯 防止水倒吸']},
+  {id:58,unit:9,unitName:'化学·制氧气',title:'氯酸钾制取氧气的反应原理及与高锰酸钾法的区别？',answer:'<p><span class="key-point">文字表达式：</span>氯酸钾 →（加热、二氧化锰催化）→ 氯化钾 + 氧气</p><p><span class="key-point">化学方程式：</span>2KClO₃ —MnO₂、△→ 2KCl + 3O₂↑</p><p><span class="key-point">区别：</span>试管里<span class="key-point">不需要加棉花团</span>，其他步骤与高锰酸钾制氧气相同</p>',keyPoints:['氯酸钾 KClO₃','加热+二氧化锰催化','生成氯化钾+氧气','不需要棉花团 其他相同']},
+  {id:59,unit:9,unitName:'化学·制氧气',title:'制取气体的一般思路（归纳）？',answer:'<p><span class="key-point">①反应原理：</span>依据物质组成（必须含有氧元素）、性质</p><p><span class="key-point">②发生装置：</span>主要考虑反应物和生成物状态、反应条件</p><p><span class="key-point">③收集方法：</span>主要考虑气体密度、溶解性、是否与水/空气反应等</p><p><span class="key-point">④检验方法：</span>依据物质性质，产生明显现象</p><p><span class="key-point">⑤验满方法</span></p><p><span class="key-point">⑥存放方法：</span>依据物质性质（如氧气密度比空气大，瓶口向上）</p>',keyPoints:['反应原理 含氧元素','发生装置 状态+条件','收集方法 密度+溶解性','检验方法 性质产生现象','验满方法','存放方法 依据性质']},
+
+  // ===== 语文古诗文默写 =====
+  {id:60,unit:10,unitName:'语文·默写',title:'挥手自兹去，__________。（李白《送友人》）',answer:'<p><span class="key-point">答案：</span>挥手自兹去，<span class="key-point">萧萧班马鸣</span>。</p><p>出处：李白《送友人》</p>',keyPoints:['萧萧班马鸣']},
+  {id:61,unit:10,unitName:'语文·默写',title:'__________，讲信修睦。（《大道之行也》）',answer:'<p><span class="key-point">答案：</span><span class="key-point">选贤与能</span>，讲信修睦。</p><p>出处：《大道之行也》</p>',keyPoints:['选贤与能']},
+  {id:62,unit:10,unitName:'语文·默写',title:'王勃《送杜少府之任蜀州》中表明不要因离别而伤感，给人以积极向上的力量的千古名句是：__________，__________。',answer:'<p><span class="key-point">答案：</span><span class="key-point">海内存知己，天涯若比邻</span>。</p><p>出处：王勃《送杜少府之任蜀州》</p>',keyPoints:['海内存知己','天涯若比邻']},
+  {id:63,unit:10,unitName:'语文·默写',title:'杜甫在《茅屋为秋风所破歌》中表达作者饱览民生疾苦、体察人间冷暖、济世情怀的诗句是：__________，__________！',answer:'<p><span class="key-point">答案：</span><span class="key-point">安得广厦千万间，大庇天下寒士俱欢颜</span>！</p><p>出处：杜甫《茅屋为秋风所破歌》</p>',keyPoints:['安得广厦千万间','大庇天下寒士俱欢颜']},
+  {id:64,unit:10,unitName:'语文·默写',title:'拣尽寒枝不肯栖，__________。（苏轼《卜算子·黄州定慧院寓居作》）',answer:'<p><span class="key-point">答案：</span>拣尽寒枝不肯栖，<span class="key-point">寂寞沙洲冷</span>。</p><p>出处：苏轼《卜算子·黄州定慧院寓居作》</p>',keyPoints:['寂寞沙洲冷']},
+  {id:65,unit:10,unitName:'语文·默写',title:'何时眼前突兀见此屋，__________！（杜甫《茅屋为秋风所破歌》）',answer:'<p><span class="key-point">答案：</span>何时眼前突兀见此屋，<span class="key-point">吾庐独破受冻死亦足</span>！</p><p>出处：杜甫《茅屋为秋风所破歌》</p>',keyPoints:['吾庐独破受冻死亦足']},
+  {id:66,unit:10,unitName:'语文·默写',title:'__________，只有香如故。（陆游《卜算子·咏梅》）',answer:'<p><span class="key-point">答案：</span><span class="key-point">零落成泥碾作尘</span>，只有香如故。</p><p>出处：陆游《卜算子·咏梅》</p>',keyPoints:['零落成泥碾作尘']},
+  {id:67,unit:10,unitName:'语文·默写',title:'曲径通幽处，__________。（常建《题破山寺后禅院》）',answer:'<p><span class="key-point">答案：</span>曲径通幽处，<span class="key-point">禅房花木深</span>。</p><p>出处：常建《题破山寺后禅院》</p>',keyPoints:['禅房花木深']},
+  {id:68,unit:10,unitName:'语文·默写',title:'__________，君子好逑。（《诗经·关雎》）',answer:'<p><span class="key-point">答案：</span><span class="key-point">窈窕淑女</span>，君子好逑。</p><p>出处：《诗经·关雎》</p>',keyPoints:['窈窕淑女']},
+  {id:69,unit:10,unitName:'语文·默写',title:'鹏之徙于南冥也，水击三千里，__________，__________。（《北冥有鱼》）',answer:'<p><span class="key-point">答案：</span>鹏之徙于南冥也，水击三千里，<span class="key-point">抟扶摇而上者九万里，去以六月息者也</span>。</p><p>出处：《北冥有鱼》（庄子）</p>',keyPoints:['抟扶摇而上者九万里','去以六月息者也']},
+  {id:70,unit:10,unitName:'语文·默写',title:'白居易的《卖炭翁》中借写卖炭翁矛盾心理反映其悲惨遭遇的句子是：__________，__________。',answer:'<p><span class="key-point">答案：</span><span class="key-point">可怜身上衣正单，心忧炭贱愿天寒</span>。</p><p>出处：白居易《卖炭翁》</p>',keyPoints:['可怜身上衣正单','心忧炭贱愿天寒']},
+  {id:71,unit:10,unitName:'语文·默写',title:'《式微》中"__________，胡为乎泥中"以质问的语气表达了作者对统治者剥削人民的不满。',answer:'<p><span class="key-point">答案：</span><span class="key-point">微君之躬</span>，胡为乎泥中？</p><p>出处：《诗经·式微》</p>',keyPoints:['微君之躬']},
+  {id:72,unit:10,unitName:'语文·默写',title:'《桃花源记》中"__________，并怡然自乐"创造了一个美好和谐的世外桃源。',answer:'<p><span class="key-point">答案：</span><span class="key-point">黄发垂髫</span>，并怡然自乐。</p><p>出处：陶渊明《桃花源记》</p>',keyPoints:['黄发垂髫']},
+  {id:73,unit:10,unitName:'语文·默写',title:'《望洞庭湖上张丞相》中"坐观垂钓者，__________"含蓄地表达了诗人想要做官的心愿。',answer:'<p><span class="key-point">答案：</span>坐观垂钓者，<span class="key-point">徒有羡鱼情</span>。</p><p>出处：孟浩然《望洞庭湖上张丞相》</p>',keyPoints:['徒有羡鱼情']},
+  {id:74,unit:10,unitName:'语文·默写',title:'《石壕吏》中通过强烈的对比表达了诗人对官吏的指责和对百姓的同情：__________！__________！',answer:'<p><span class="key-point">答案：</span><span class="key-point">吏呼一何怒！妇啼一何苦</span>！</p><p>出处：杜甫《石壕吏》</p>',keyPoints:['吏呼一何怒','妇啼一何苦']},
+  {id:75,unit:10,unitName:'语文·默写',title:'《大道之行也》中"__________，__________，故外户而不闭。是谓大同"写出了古代文人对天下和平美好的最高理想。',answer:'<p><span class="key-point">答案：</span><span class="key-point">是谓大同</span>，故外户而不闭。</p><p>出处：《大道之行也》</p>',keyPoints:['是谓大同']},
+  {id:76,unit:10,unitName:'语文·默写',title:'《送友人》中"浮云游子意，__________"用比喻、对偶的手法表达对友人的难舍难分。',answer:'<p><span class="key-point">答案：</span>浮云游子意，<span class="key-point">落日故人情</span>。</p><p>出处：李白《送友人》</p>',keyPoints:['落日故人情']},
+  {id:77,unit:10,unitName:'语文·默写',title:'《题破山寺后禅院》中"__________，潭影空人心"既有准确传神的写景，又表现了深邃的思想内涵。',answer:'<p><span class="key-point">答案：</span><span class="key-point">山光悦鸟性</span>，潭影空人心。</p><p>出处：常建《题破山寺后禅院》</p>',keyPoints:['山光悦鸟性']},
+  {id:78,unit:10,unitName:'语文·默写',title:'《望洞庭湖上张丞相》中以"__________，端居耻圣明"的比喻婉转含蓄地表达了自己从政的心愿。',answer:'<p><span class="key-point">答案：</span><span class="key-point">欲济无舟楫</span>，端居耻圣明。</p><p>出处：孟浩然《望洞庭湖上张丞相》</p>',keyPoints:['欲济无舟楫']},
+  {id:79,unit:10,unitName:'语文·默写',title:'《关雎》中"__________，__________"两句，形象而集中地体现了男子求之不得的相思之苦。',answer:'<p><span class="key-point">答案：</span><span class="key-point">求之不得，寤寐思服</span>。</p><p>出处：《诗经·关雎》</p>',keyPoints:['求之不得','寤寐思服']},
+  {id:80,unit:10,unitName:'语文·默写',title:'陶渊明《桃花源记》中"__________，__________"两句形象地描绘了桃花林中草美花繁的景象。',answer:'<p><span class="key-point">答案：</span><span class="key-point">芳草鲜美，落英缤纷</span>。</p><p>出处：陶渊明《桃花源记》</p>',keyPoints:['芳草鲜美','落英缤纷']},
+  {id:81,unit:10,unitName:'语文·默写',title:'柳宗元《小石潭记》中"__________，明灭可见"两句生动地写出了溪流的曲折，时隐时现。',answer:'<p><span class="key-point">答案：</span><span class="key-point">斗折蛇行</span>，明灭可见。</p><p>出处：柳宗元《小石潭记》</p>',keyPoints:['斗折蛇行']},
+  {id:82,unit:10,unitName:'语文·默写',title:'《关雎》写"窈窕淑女，__________""窈窕淑女，__________"，主人公以弹琴鼓瑟、敲钟打鼓的方式展现自己。',answer:'<p><span class="key-point">答案：</span>窈窕淑女，<span class="key-point">琴瑟友之</span>。窈窕淑女，<span class="key-point">钟鼓乐之</span>。</p><p>出处：《诗经·关雎》</p>',keyPoints:['琴瑟友之','钟鼓乐之']},
+  {id:83,unit:10,unitName:'语文·默写',title:'孟浩然的"__________，__________"（《望洞庭湖上张丞相》），表达自己想出仕的心，告诉我们自己的追求要勇于去争取。',answer:'<p><span class="key-point">答案：</span><span class="key-point">欲济无舟楫，端居耻圣明</span>。</p><p>出处：孟浩然《望洞庭湖上张丞相》</p>',keyPoints:['欲济无舟楫','端居耻圣明']},
+  {id:84,unit:10,unitName:'语文·默写',title:'白居易写"__________，__________"，反差强烈，揭露"宫市"残酷，告诉我们面对不公，要敢于去抗争。',answer:'<p><span class="key-point">答案：</span><span class="key-point">可怜身上衣正单，心忧炭贱愿天寒</span>。</p><p>出处：白居易《卖炭翁》</p>',keyPoints:['可怜身上衣正单','心忧炭贱愿天寒']},
+  {id:85,unit:10,unitName:'语文·默写',title:'苏轼"__________，__________"，告诉我们面对现实的苦难，我们要争其必然，坚守傲骨。',answer:'<p><span class="key-point">答案：</span><span class="key-point">拣尽寒枝不肯栖，寂寞沙洲冷</span>。</p><p>出处：苏轼《卜算子·黄州定慧院寓居作》</p>',keyPoints:['拣尽寒枝不肯栖','寂寞沙洲冷']},
+  {id:86,unit:10,unitName:'语文·默写',title:'望洞庭湖，感受孟浩然笔下"__________，波撼岳阳城"的壮阔。',answer:'<p><span class="key-point">答案：</span><span class="key-point">八月湖水平</span>，波撼岳阳城。</p><p>出处：孟浩然《望洞庭湖上张丞相》</p>',keyPoints:['八月湖水平']},
+  {id:87,unit:10,unitName:'语文·默写',title:'访破山寺，体会常建笔下"__________，潭影空人心"的禅意。',answer:'<p><span class="key-point">答案：</span><span class="key-point">山光悦鸟性</span>，潭影空人心。</p><p>出处：常建《题破山寺后禅院》</p>',keyPoints:['山光悦鸟性']},
+  {id:88,unit:10,unitName:'语文·默写',title:'少年人当如庄子笔下的鲲鹏，"水击三千里，__________"。',answer:'<p><span class="key-point">答案：</span>水击三千里，<span class="key-point">抟扶摇而上者九万里</span>。</p><p>出处：《北冥有鱼》（庄子）</p>',keyPoints:['抟扶摇而上者九万里']},
+  {id:89,unit:10,unitName:'语文·默写',title:'杜甫在《__________》中抒写的"__________，__________！风雨不动安如山"更是我辈青少年要心怀的大义。',answer:'<p><span class="key-point">答案：</span>杜甫在《<span class="key-point">茅屋为秋风所破歌</span>》中抒写的"<span class="key-point">安得广厦千万间，大庇天下寒士俱欢颜</span>！风雨不动安如山"</p><p>出处：杜甫《茅屋为秋风所破歌》</p>',keyPoints:['茅屋为秋风所破歌','安得广厦千万间','大庇天下寒士俱欢颜']},
+  {id:90,unit:10,unitName:'语文·默写',title:'失意困顿之中更加彰显品格的高尚。"__________，__________"（《卜算子·黄州定慧院寓居作》）写出苏轼虽心境孤独但志趣高洁。',answer:'<p><span class="key-point">答案：</span><span class="key-point">拣尽寒枝不肯栖，寂寞沙洲冷</span>。</p><p>出处：苏轼《卜算子·黄州定慧院寓居作》</p>',keyPoints:['拣尽寒枝不肯栖','寂寞沙洲冷']},
+  {id:91,unit:10,unitName:'语文·默写',title:'"__________，__________"（《茅屋为秋风所破歌》）写出杜甫虽身处茅屋，却愿身死以佑苍生！',answer:'<p><span class="key-point">答案：</span><span class="key-point">何时眼前突兀见此屋，吾庐独破受冻死亦足</span>！</p><p>出处：杜甫《茅屋为秋风所破歌》</p>',keyPoints:['何时眼前突兀见此屋','吾庐独破受冻死亦足']},
+  {id:92,unit:10,unitName:'语文·默写',title:'陶渊明的《桃花源记》中"__________，__________"两句描绘了老人和小孩都非常快乐的场景。',answer:'<p><span class="key-point">答案：</span><span class="key-point">黄发垂髫，并怡然自乐</span>。</p><p>出处：陶渊明《桃花源记》</p>',keyPoints:['黄发垂髫','并怡然自乐']},
+  {id:93,unit:10,unitName:'语文·默写',title:'《大道之行也》中"__________，__________"两句描绘了上古时代选拔推举品德高尚、有才能的人，讲求诚信，培养和睦气氛的政治制度。',answer:'<p><span class="key-point">答案：</span><span class="key-point">选贤与能，讲信修睦</span>。</p><p>出处：《大道之行也》</p>',keyPoints:['选贤与能','讲信修睦']},
+  {id:94,unit:10,unitName:'语文·默写',title:'李白《送友人》中"__________，__________"的诗句，让我们读到青山的静默、白水的流转。',answer:'<p><span class="key-point">答案：</span><span class="key-point">青山横北郭，白水绕东城</span>。</p><p>出处：李白《送友人》</p>',keyPoints:['青山横北郭','白水绕东城']},
+  {id:95,unit:10,unitName:'语文·默写',title:'《题破山寺后禅院》中"__________，__________"的诗句，让我们读到鸟与人的感受，悟出了山光、潭影空寂中的禅意。',answer:'<p><span class="key-point">答案：</span><span class="key-point">山光悦鸟性，潭影空人心</span>。</p><p>出处：常建《题破山寺后禅院》</p>',keyPoints:['山光悦鸟性','潭影空人心']},
+  {id:96,unit:10,unitName:'语文·默写',title:'《小石潭记》中"__________，__________"的句子，让我们读到鱼儿忽动忽静的活泼，体会到了潭水清澈。',answer:'<p><span class="key-point">答案：</span><span class="key-point">俶尔远逝，往来翕忽</span>。</p><p>出处：柳宗元《小石潭记》</p>',keyPoints:['俶尔远逝','往来翕忽']},
+  {id:97,unit:10,unitName:'语文·默写',title:'陶渊明《桃花源记》中"__________，__________"的句子道尽作者对老老少少"安其居，乐其俗"的安逸快乐生活的向往。',answer:'<p><span class="key-point">答案：</span><span class="key-point">黄发垂髫，并怡然自乐</span>。</p><p>出处：陶渊明《桃花源记》</p>',keyPoints:['黄发垂髫','并怡然自乐']},
+  {id:98,unit:10,unitName:'语文·默写',title:'孟浩然《望洞庭湖上张丞相》中"八月湖水平，__________"描绘水天一色的烟波之美。',answer:'<p><span class="key-point">答案：</span>八月湖水平，<span class="key-point">涵虚混太清</span>。</p><p>出处：孟浩然《望洞庭湖上张丞相》</p>',keyPoints:['涵虚混太清']},
+  {id:99,unit:10,unitName:'语文·默写',title:'柳宗元《小石潭记》中"青树翠蔓，__________，参差披拂"描写青翠树木的姿态之美。',answer:'<p><span class="key-point">答案：</span>青树翠蔓，<span class="key-point">蒙络摇缀</span>，参差披拂。</p><p>出处：柳宗元《小石潭记》</p>',keyPoints:['蒙络摇缀']},
+  {id:100,unit:10,unitName:'语文·默写',title:'陆游《卜算子·咏梅》中"__________，__________"表现坚贞不屈的节操之美。',answer:'<p><span class="key-point">答案：</span><span class="key-point">零落成泥碾作尘，只有香如故</span>。</p><p>出处：陆游《卜算子·咏梅》</p>',keyPoints:['零落成泥碾作尘','只有香如故']},
+  {id:101,unit:10,unitName:'语文·默写',title:'王勃《送杜少府之任蜀州》中"__________，__________"体现积极向上的哲理之美。',answer:'<p><span class="key-point">答案：</span><span class="key-point">海内存知己，天涯若比邻</span>。</p><p>出处：王勃《送杜少府之任蜀州》</p>',keyPoints:['海内存知己','天涯若比邻']},
+  {id:102,unit:10,unitName:'语文·默写',title:'满怀着"蒹葭苍苍，__________。所谓伊人，在水一方"（《蒹葭》）的美好追求。',answer:'<p><span class="key-point">答案：</span>蒹葭苍苍，<span class="key-point">白露为霜</span>。所谓伊人，在水一方。</p><p>出处：《诗经·蒹葭》</p>',keyPoints:['白露为霜']},
+  {id:103,unit:10,unitName:'语文·默写',title:'遇到不平时，敢于发出"呜呼！__________？__________？"（韩愈《马说》）的呐喊。',answer:'<p><span class="key-point">答案：</span>呜呼！<span class="key-point">其真无马邪？其真不知马也</span>！</p><p>出处：韩愈《马说》</p>',keyPoints:['其真无马邪','其真不知马也']},
+  {id:104,unit:10,unitName:'语文·默写',title:'《卖炭翁》中"可怜身上衣正单，__________"表现了卖炭翁艰难的处境和复杂的内心活动。',answer:'<p><span class="key-point">答案：</span>可怜身上衣正单，<span class="key-point">心忧炭贱愿天寒</span>。</p><p>出处：白居易《卖炭翁》</p>',keyPoints:['心忧炭贱愿天寒']},
+  {id:105,unit:10,unitName:'语文·默写',title:'《关雎》中"求之不得，__________。悠哉悠哉，__________"抒写了主人公相思之苦。',answer:'<p><span class="key-point">答案：</span>求之不得，<span class="key-point">寤寐思服</span>。悠哉悠哉，<span class="key-point">辗转反侧</span>。</p><p>出处：《诗经·关雎》</p>',keyPoints:['寤寐思服','辗转反侧']},
+  {id:106,unit:10,unitName:'语文·默写',title:'《蒹葭》中"蒹葭萋萋，__________。所谓伊人，__________"描写秋水伊人。',answer:'<p><span class="key-point">答案：</span>蒹葭萋萋，<span class="key-point">白露未晞</span>。所谓伊人，<span class="key-point">在水之湄</span>。</p><p>出处：《诗经·蒹葭》</p>',keyPoints:['白露未晞','在水之湄']},
+  {id:107,unit:10,unitName:'语文·默写',title:'《虽有嘉肴》中"是故学然后知不足，__________"强调教学相长。',answer:'<p><span class="key-point">答案：</span>是故学然后知不足，<span class="key-point">教然后知困</span>。</p><p>出处：《虽有嘉肴》</p>',keyPoints:['教然后知困']},
+  {id:108,unit:10,unitName:'语文·默写',title:'《北冥有鱼》中"怒而飞，__________"描写鲲鹏展翅。',answer:'<p><span class="key-point">答案：</span>怒而飞，<span class="key-point">其翼若垂天之云</span>。</p><p>出处：《北冥有鱼》（庄子）</p>',keyPoints:['其翼若垂天之云']},
+  {id:109,unit:10,unitName:'语文·默写',title:'《马说》中"故虽有名马，__________，骈死于槽枥之间"表达怀才不遇。',answer:'<p><span class="key-point">答案：</span>故虽有名马，<span class="key-point">祗辱于奴隶人之手</span>，骈死于槽枥之间。</p><p>出处：韩愈《马说》</p>',keyPoints:['祗辱于奴隶人之手']},
+  {id:110,unit:10,unitName:'语文·默写',title:'陶渊明《桃花源记》中"芳草鲜美，__________"描绘桃花林美景。',answer:'<p><span class="key-point">答案：</span>芳草鲜美，<span class="key-point">落英缤纷</span>。</p><p>出处：陶渊明《桃花源记》</p>',keyPoints:['落英缤纷']},
+  {id:111,unit:10,unitName:'语文·默写',title:'柳宗元《小石潭记》中"怡然不动，__________"描写潭中鱼儿。',answer:'<p><span class="key-point">答案：</span>怡然不动，<span class="key-point">俶尔远逝</span>。</p><p>出处：柳宗元《小石潭记》</p>',keyPoints:['俶尔远逝']},
+  {id:112,unit:10,unitName:'语文·默写',title:'《蒹葭》中"__________，白露未晞"描写秋景。',answer:'<p><span class="key-point">答案：</span><span class="key-point">蒹葭萋萋</span>，白露未晞。</p><p>出处：《诗经·蒹葭》</p>',keyPoints:['蒹葭萋萋']},
+  {id:113,unit:10,unitName:'语文·默写',title:'杜甫"安得广厦千万间，__________"的博大胸怀。',answer:'<p><span class="key-point">答案：</span>安得广厦千万间，<span class="key-point">大庇天下寒士俱欢颜</span>！</p><p>出处：杜甫《茅屋为秋风所破歌》</p>',keyPoints:['大庇天下寒士俱欢颜']},
+  {id:114,unit:10,unitName:'语文·默写',title:'《关雎》中的"__________，__________"抒写了主人公求而得之的美好愿望和喜悦心情。',answer:'<p><span class="key-point">答案：</span><span class="key-point">窈窕淑女，钟鼓乐之</span>。</p><p>出处：《诗经·关雎》</p>',keyPoints:['窈窕淑女','钟鼓乐之']},
+  {id:115,unit:10,unitName:'语文·默写',title:'王勃在"__________，__________"（《送杜少府之任蜀州》）中，劝慰友人不要在离别时泪沾手巾。',answer:'<p><span class="key-point">答案：</span><span class="key-point">无为在歧路，儿女共沾巾</span>。</p><p>出处：王勃《送杜少府之任蜀州》</p>',keyPoints:['无为在歧路','儿女共沾巾']},
+  {id:116,unit:10,unitName:'语文·默写',title:'《茅屋为秋风所破歌》中"__________，__________"通过写大风过后黑云涌动的景象，为后文写诗人遭遇做铺垫。',answer:'<p><span class="key-point">答案：</span><span class="key-point">俄顷风定云墨色，秋天漠漠向昏黑</span>。</p><p>出处：杜甫《茅屋为秋风所破歌》</p>',keyPoints:['俄顷风定云墨色','秋天漠漠向昏黑']},
+  {id:117,unit:10,unitName:'语文·默写',title:'《卖炭翁》中"__________，__________"突出了天气的寒冷和道路的难行。',answer:'<p><span class="key-point">答案：</span><span class="key-point">可怜身上衣正单，心忧炭贱愿天寒</span>。</p><p>出处：白居易《卖炭翁》</p>',keyPoints:['可怜身上衣正单','心忧炭贱愿天寒']},
+  {id:118,unit:10,unitName:'语文·默写',title:'《卜算子·黄州定慧院寓居作》中写鸿"__________，__________"表现了作者心境的孤独和志趣的高洁。',answer:'<p><span class="key-point">答案：</span><span class="key-point">拣尽寒枝不肯栖，寂寞沙洲冷</span>。</p><p>出处：苏轼《卜算子·黄州定慧院寓居作》</p>',keyPoints:['拣尽寒枝不肯栖','寂寞沙洲冷']},
+  {id:119,unit:10,unitName:'语文·默写',title:'《蒹葭》中"__________，道阻且长。__________，宛在水中央"为我们呈现了一个动人的抉择。',answer:'<p><span class="key-point">答案：</span><span class="key-point">溯洄从之</span>，道阻且长。<span class="key-point">溯游从之</span>，宛在水中央。</p><p>出处：《诗经·蒹葭》</p>',keyPoints:['溯洄从之','溯游从之']},
+  {id:120,unit:10,unitName:'语文·默写',title:'白居易心系民生，直指宫使："__________，系向牛头充炭直。"表现了他悲天悯人的博大胸怀。',answer:'<p><span class="key-point">答案：</span><span class="key-point">半匹红纱一丈绫</span>，系向牛头充炭直。</p><p>出处：白居易《卖炭翁》</p>',keyPoints:['半匹红纱一丈绫']},
+  {id:121,unit:10,unitName:'语文·默写',title:'《卜算子·黄州定慧院寓居作》中"__________，__________"描写孤鸿不栖寒枝，表达孤独心境和高洁志趣。',answer:'<p><span class="key-point">答案：</span><span class="key-point">拣尽寒枝不肯栖，寂寞沙洲冷</span>。</p><p>出处：苏轼《卜算子·黄州定慧院寓居作》</p>',keyPoints:['拣尽寒枝不肯栖','寂寞沙洲冷']},
+  {id:122,unit:10,unitName:'语文·默写',title:'贺敬之《回延安》中"树梢树枝树根根，__________"表达游子对家乡的深情。',answer:'<p><span class="key-point">答案：</span>树梢树枝树根根，<span class="key-point">亲山亲水有亲人</span>。</p><p>出处：贺敬之《回延安》</p>',keyPoints:['亲山亲水有亲人']}
+];
+
+// ===== 核心逻辑 =====
+const TOTAL = ALL_QUESTIONS.length;
+const BACKEND = 'http://localhost:1101';
+let currentMode = 'quiz';
+let currentUnit = -1;
+let currentIndex = 0;
+let progress = {};
+let gradeMode = 'ai';
+let scoreRecords = [];
+let totalScore = 0;
+let totalMaxScore = 0;
+
+function init() {
+    loadProgress();
+    renderUnitTabs();
+    updateStats();
+    if (currentUnit === -1) switchUnit(ALL_QUESTIONS[0].unit);
+    fetch(BACKEND + '/api/scores').then(r => r.json()).then(d => {
+        if (d.ok && d.scores) { scoreRecords = d.scores; updateTotalScore(); }
+    }).catch(() => {});
+    if (!API_KEY) {
+        const k = prompt('🔑 请输入API密钥（留空则仅使用要点自动批改）：');
+        if (k) { API_KEY = k.trim(); localStorage.setItem('boxue_api_key', API_KEY); }
+    }
+}
+
+function saveProgressToBackend() {
+    fetch(BACKEND + '/api/progress', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ progress })
+    }).catch(() => {});
+}
+function loadProgress() {
+    fetch(BACKEND + '/api/progress').then(r => r.json()).then(d => {
+        if (d.ok && d.progress) progress = d.progress;
+    }).catch(() => {
+        try { const s = localStorage.getItem('boxue_progress'); if (s) progress = JSON.parse(s); } catch(e) {}
+    });
+    updateStats();
+    renderStatusDots();
+}
+function saveScoreRecord(record) {
+    scoreRecords.push(record);
+    totalScore += record.score;
+    totalMaxScore += record.maxScore;
+    updateTotalScore();
+    fetch(BACKEND + '/api/scores', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ score: record })
+    }).catch(() => {});
+}
+
+function getStatus(id) { return progress[id] || 'unseen'; }
+function setStatus(id, status) {
+    progress[id] = status;
+    saveProgressToBackend();
+    updateStats();
+    renderStatusDots();
+}
+
+function getUnitQuestions(unit) {
+    if (unit === -1) return ALL_QUESTIONS;
+    return ALL_QUESTIONS.filter(q => q.unit === unit);
+}
+function getUnits() {
+    const seen = new Set();
+    const units = [];
+    ALL_QUESTIONS.forEach(q => {
+        if (!seen.has(q.unit)) { seen.add(q.unit); units.push({ unit: q.unit, name: q.unitName }); }
+    });
+    return units;
+}
+
+function renderUnitTabs() {
+    const container = document.getElementById('unitTabs');
+    const units = getUnits();
+    let html = '<button class="unit-tab' + (currentUnit === -1 ? ' active' : '') + '" onclick="switchUnit(-1)">📚 全部 <span class="badge">' + TOTAL + '</span></button>';
+    units.forEach(u => {
+        const count = getUnitQuestions(u.unit).length;
+        html += '<button class="unit-tab' + (currentUnit === u.unit ? ' active' : '') + '" onclick="switchUnit(' + u.unit + ')">' + u.name + ' <span class="badge">' + count + '</span></button>';
+    });
+    container.innerHTML = html;
+}
+
+function switchUnit(unit) {
+    currentUnit = unit;
+    renderUnitTabs();
+    const qs = getUnitQuestions(unit);
+    if (qs.length === 0) return;
+    if (currentIndex >= qs.length) currentIndex = 0;
+    renderQuestion();
+    renderStatusDots();
+    updateStats();
+}
+
+function renderStatusDots() {
+    const container = document.getElementById('statusDots');
+    const qs = getUnitQuestions(currentUnit);
+    const currentQ = qs[currentIndex];
+    let html = '';
+    qs.forEach((q, i) => {
+        const status = getStatus(q.id);
+        let cls = 'dot';
+        if (i === currentIndex && currentQ && q.id === currentQ.id) cls += ' current';
+        if (status === 'known') cls += ' known';
+        else if (status === 'unknown') cls += ' unknown';
+        else if (status === 'seen') cls += ' seen';
+        html += '<div class="' + cls + '" onclick="goToQuestion(' + i + ')" title="第' + (i + 1) + '题">' + (i + 1) + '</div>';
+    });
+    container.innerHTML = html;
+}
+
+function goToQuestion(index) {
+    const qs = getUnitQuestions(currentUnit);
+    if (index >= 0 && index < qs.length) {
+        currentIndex = index;
+        renderQuestion();
+        renderStatusDots();
+    }
+}
+
+function renderQuestion() {
+    const area = document.getElementById('questionArea');
+    const qs = getUnitQuestions(currentUnit);
+    if (qs.length === 0) {
+        area.innerHTML = '<div style="text-align:center;padding:40px;"><div style="font-size:48px;">📭</div><h2>该单元暂无题目</h2></div>';
+        return;
+    }
+    const q = qs[currentIndex];
+    const status = getStatus(q.id);
+    let statusLabel = '';
+    if (status === 'known') statusLabel = '<span style="color:var(--success);font-size:15px;">✅ 已掌握</span>';
+    else if (status === 'unknown') statusLabel = '<span style="color:var(--danger);font-size:15px;">❌ 需复习</span>';
+    else if (status === 'seen') statusLabel = '<span style="color:var(--warning);font-size:15px;">👁️ 已查看</span>';
+    else statusLabel = '<span style="color:var(--text-secondary);font-size:15px;">📌 未开始</span>';
+    const globalIndex = ALL_QUESTIONS.findIndex(item => item.id === q.id) + 1;
+
+    let html = '<div class="question-card">';
+    html += '<div class="q-header"><div><span class="q-number">#' + globalIndex + '</span> <span class="q-unit-label">' + q.unitName + '</span></div>' + statusLabel + '</div>';
+    html += '<div class="q-title">' + q.title + '</div>';
+
+    if (currentMode === 'quiz') {
+        html += '<div class="answer-input-area"><textarea id="userAnswer" placeholder="✍️ 在此输入你的答案...&#10;&#10;提示：尽量完整作答，涵盖关键要点"></textarea></div>';
+        html += '<div class="q-actions">';
+        html += '<button class="btn-submit" onclick="submitAnswer(' + q.id + ')">📝 提交批改</button>';
+        html += '<button class="btn-show-answer" onclick="toggleAnswer(this)">📖 查看参考答案</button>';
+        html += '<button class="btn-known" onclick="markKnown(' + q.id + ')">✅ 已掌握</button>';
+        html += '<button class="btn-unknown" onclick="markUnknown(' + q.id + ')">🔄 需复习</button>';
+        html += '</div>';
+        html += '<div class="grade-result" id="gradeResult-' + q.id + '"></div>';
+        html += '<div class="answer-area" id="answer-' + q.id + '"><div class="label">📝 参考答案</div><div class="content">' + q.answer + '</div>';
+        html += '<div class="key-points-area"><div class="kp-title">🎯 评分要点（共' + q.keyPoints.length + '个）</div><ol>';
+        q.keyPoints.forEach(kp => { html += '<li>' + kp + '</li>'; });
+        html += '</ol></div></div>';
+    } else if (currentMode === 'review') {
+        html += '<div class="q-actions">';
+        html += '<button class="btn-known" onclick="markKnown(' + q.id + ')">✅ 已掌握</button>';
+        html += '<button class="btn-unknown" onclick="markUnknown(' + q.id + ')">🔄 需复习</button>';
+        html += '</div>';
+        html += '<div class="answer-area show" id="answer-' + q.id + '"><div class="label">📝 参考答案</div><div class="content">' + q.answer + '</div>';
+        html += '<div class="key-points-area"><div class="kp-title">🎯 评分要点（共' + q.keyPoints.length + '个）</div><ol>';
+        q.keyPoints.forEach(kp => { html += '<li>' + kp + '</li>'; });
+        html += '</ol></div></div>';
+    }
+
+    html += '</div>';
+    area.innerHTML = html;
+}
+
+function toggleAnswer(btn) {
+    const card = btn.closest('.question-card');
+    const answer = card.querySelector('.answer-area');
+    answer.classList.toggle('show');
+    const qs = getUnitQuestions(currentUnit);
+    const q = qs[currentIndex];
+    if (q && getStatus(q.id) === 'unseen') setStatus(q.id, 'seen');
+}
+
+async function submitAnswer(qid) {
+    const userAnswer = document.getElementById('userAnswer').value.trim();
+    if (!userAnswer) { alert('请先输入你的答案再提交批改！'); return; }
+    const q = ALL_QUESTIONS.find(x => x.id === qid);
+    if (!q) return;
+    const resultDiv = document.getElementById('gradeResult-' + qid);
+    resultDiv.innerHTML = '<div style="text-align:center;padding:20px;"><div class="loading"></div><span style="margin-left:10px;font-size:16px;">正在批改中...</span></div>';
+    resultDiv.classList.add('show');
+    if (gradeMode === 'ai' && API_KEY) {
+        await gradeWithAI(q, userAnswer, resultDiv);
+    } else {
+        gradeWithKeywords(q, userAnswer, resultDiv);
+    }
+}
+
+async function gradeWithAI(q, userAnswer, resultDiv) {
+    // 根据题目类型动态构建批改指令
+    const isEnglish = q.unitName.startsWith('英语');
+    const isChinese = q.unitName.startsWith('语文');
+    const isChemistry = q.unitName.startsWith('化学');
+
+    let subjectGuide = '';
+    if (isEnglish) {
+        subjectGuide = `这是一道英语翻译/句子默写题。英语表达是多样化的，评分时必须注意：
+- 意思正确即可得分，不要求与参考答案逐字一致
+- 允许同义词替换、句式变化、语序调整，只要语义正确
+- 语法错误（时态、语态、主谓一致、冠词、介词等）酌情扣分，但不一刀切判错
+- 拼写错误轻微的（不影响理解）可以扣小分，不要整句判错
+- 对于翻译题：中文翻译成英文，只要句意准确、语法基本正确就应给高分
+- 对于默写题：要求较严格，错字/漏字要扣分但同音字可酌情
+- 判断"要点"时，应看语义是否覆盖，而非字面是否匹配`;
+    } else if (isChinese) {
+        subjectGuide = `这是一道语文古诗文默写题。评分标准：
+- 要求精确默写，错字、漏字、多字、语序颠倒均算错
+- 同音字、形近字错误：若影响句意判错，若不影响可酌情扣小分
+- 繁体字/异体字：若教材未要求，不扣分
+- 空格处必须填写，未填写或填写错误均扣分`;
+    } else if (isChemistry) {
+        subjectGuide = `这是一道化学知识题。评分标准：
+- 化学方程式必须配平，条件、气体符号要标注
+- 实验步骤允许表述不同，但原理和操作顺序必须正确
+- 专有名词不能写错别字
+- 允许用自己的语言表述，只要科学准确`;
+    } else {
+        subjectGuide = `评分时注意：允许学生用自己的语言表述，只要语义正确、逻辑清晰即可得分。`;
+    }
+
+    const prompt = `你是一位经验丰富、宽严有度的阅卷老师，正在批改学生的答题。请像真实阅卷一样灵活评判。
+
+${subjectGuide}
+
+【题目】${q.title}
+【参考答案】${q.answer.replace(/<[^>]*>/g, '')}
+【评分要点（仅供参考，学生不必逐字匹配，意思对即可）】${q.keyPoints.join('、')}
+【学生答案】${userAnswer}
+
+请综合判断学生的答案，给出得分和反馈。注意：
+1. 不要死板地用关键词匹配，要理解学生答案的语义
+2. 同义表达、同义替换、不同的正确句式都应给分
+3. 重点看：意思对不对、语法/知识点是否正确、是否完整
+4. 对于有创意但正确的表达，应该鼓励而非扣分
+
+请严格按以下JSON格式回复（不要添加任何其他内容）：
+{
+  "score": 分数(0-10的整数或一位小数),
+  "comment": "评语（80-150字，具体指出哪里好、哪里有问题，给出改进建议，语气鼓励中肯）",
+  "got": ["学生答对/答到的要点（用学生的语言描述）"],
+  "miss": ["学生遗漏或答错的要点"],
+  "errors": ["具体的错误点（如有时态错误、拼写错误等，没有则为空数组）"]
+}
+
+评分参考（可根据学科灵活调整）：
+- 9-10分：完全正确或仅有极微小瑕疵，表达准确完整
+- 7-8分：大部分正确，有小错误但不影响整体意思
+- 5-6分：基本意思对了，但有明显语法/知识错误
+- 3-4分：只有部分正确，错误较多
+- 1-2分：仅有零星正确内容
+- 0分：完全答非所问或空白`;
+
+    try {
+        const resp = await fetch(API_BASE + '/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + API_KEY },
+            body: JSON.stringify({
+                model: API_MODEL,
+                messages: [{ role: 'user', content: prompt }],
+                temperature: 0.5,
+                max_tokens: 1200
+            })
+        });
+        if (!resp.ok) throw new Error('API请求失败: ' + resp.status);
+        const data = await resp.json();
+        const content = data.choices[0].message.content;
+        let result;
+        try {
+            result = JSON.parse(content.replace(/```json\n?/g, '').replace(/```/g, '').trim());
+        } catch(e) {
+            const scoreMatch = content.match(/"score"\s*:\s*(\d+)/);
+            const commentMatch = content.match(/"comment"\s*:\s*"([^"]+)"/);
+            result = {
+                score: scoreMatch ? parseInt(scoreMatch[1]) : 5,
+                comment: commentMatch ? commentMatch[1] : content,
+                got: [], miss: []
+            };
+        }
+        renderGradeResult(resultDiv, result, q);
+        saveScoreRecord({ qid: q.id, title: q.title, score: result.score, maxScore: 10, mode: 'ai', time: new Date().toISOString() });
+        if (result.score >= 7) setStatus(q.id, 'known');
+        else if (result.score <= 4) setStatus(q.id, 'unknown');
+        else setStatus(q.id, 'seen');
+    } catch(e) {
+        resultDiv.innerHTML = '<div style="color:var(--danger);padding:16px;">❌ AI批改失败：' + e.message + '<br><small>请检查API密钥或切换到"要点自动批改"模式</small></div>';
+        resultDiv.classList.add('show');
+    }
+}
+
+function gradeWithKeywords(q, userAnswer, resultDiv) {
+    const lower = userAnswer.toLowerCase();
+    let got = [], miss = [];
+    q.keyPoints.forEach(kp => {
+        // 将要点拆分成关键词进行匹配
+        const words = kp.replace(/[（(].*?[)）]/g, '').split(/[\/、，,]/).map(w => w.trim()).filter(w => w.length > 1);
+        const matched = words.some(w => lower.includes(w.toLowerCase()));
+        if (matched) got.push(kp);
+        else miss.push(kp);
+    });
+    const score = q.keyPoints.length > 0 ? Math.round(got.length / q.keyPoints.length * 10) : 5;
+    const result = {
+        score: score,
+        comment: score >= 8 ? '很棒！要点基本都答到了，继续保持！' :
+                 score >= 6 ? '不错！答到了大部分要点，再巩固一下遗漏的内容。' :
+                 score >= 4 ? '还需要加强，建议对照参考答案认真复习。' :
+                 '需要重点复习这道题，建议先看参考答案再重新作答。',
+        got: got, miss: miss
+    };
+    renderGradeResult(resultDiv, result, q);
+    saveScoreRecord({ qid: q.id, title: q.title, score: result.score, maxScore: 10, mode: 'auto', time: new Date().toISOString() });
+    if (result.score >= 7) setStatus(q.id, 'known');
+    else if (result.score <= 4) setStatus(q.id, 'unknown');
+    else setStatus(q.id, 'seen');
+}
+
+function renderGradeResult(div, result, q) {
+    const scoreClass = result.score >= 8 ? 'high' : result.score >= 5 ? 'mid' : 'low';
+    let html = '<div class="grade-header">';
+    html += '<div class="grade-score ' + scoreClass + '">' + result.score + '<span style="font-size:18px">/10分</span></div>';
+    html += '<div class="grade-label">' + (result.score >= 8 ? '🌟 优秀！' : result.score >= 5 ? '👍 继续加油' : '💪 需要加强') + '</div>';
+    html += '</div>';
+    html += '<div class="grade-comment">💬 ' + result.comment + '</div>';
+    html += '<div class="grade-detail">';
+    if (result.got && result.got.length > 0) {
+        html += '<p style="color:var(--success);font-weight:600;margin-bottom:4px;">✅ 答对/答到的：</p>';
+        result.got.forEach(p => { html += '<div class="point got"><span class="icon">✅</span><span>' + p + '</span></div>'; });
+    }
+    if (result.miss && result.miss.length > 0) {
+        html += '<p style="color:var(--danger);font-weight:600;margin-bottom:4px;margin-top:8px;">❌ 遗漏/未答到的：</p>';
+        result.miss.forEach(p => { html += '<div class="point miss"><span class="icon">❌</span><span>' + p + '</span></div>'; });
+    }
+    if (result.errors && result.errors.length > 0) {
+        html += '<p style="color:var(--warning);font-weight:600;margin-bottom:4px;margin-top:8px;">⚠️ 具体错误：</p>';
+        result.errors.forEach(p => { html += '<div class="point" style="color:var(--warning);"><span class="icon">⚠️</span><span>' + p + '</span></div>'; });
+    }
+    html += '</div>';
+    div.innerHTML = html;
+    div.classList.add('show');
+}
+
+function markKnown(id) { setStatus(id, 'known'); autoNext(); }
+function markUnknown(id) { setStatus(id, 'unknown'); autoNext(); }
+function autoNext() { setTimeout(() => nextQuestion(), 400); }
+
+function nextQuestion() {
+    const qs = getUnitQuestions(currentUnit);
+    if (qs.length === 0) return;
+    const unknown = qs.filter(q => getStatus(q.id) === 'unknown');
+    const unseen = qs.filter(q => getStatus(q.id) === 'unseen');
+    const seen = qs.filter(q => getStatus(q.id) === 'seen');
+    let target;
+    if (unknown.length > 0) target = unknown[Math.floor(Math.random() * unknown.length)];
+    else if (unseen.length > 0) target = unseen[Math.floor(Math.random() * unseen.length)];
+    else if (seen.length > 0) target = seen[Math.floor(Math.random() * seen.length)];
+    else target = qs[Math.floor(Math.random() * qs.length)];
+    const newIndex = qs.findIndex(q => q.id === target.id);
+    if (newIndex !== -1) { currentIndex = newIndex; renderQuestion(); renderStatusDots(); }
+}
+
+function updateStats() {
+    const qs = getUnitQuestions(currentUnit);
+    const total = qs.length;
+    let known = 0, unknown = 0, unseen = 0;
+    qs.forEach(q => {
+        const s = getStatus(q.id);
+        if (s === 'known') known++;
+        else if (s === 'unknown') unknown++;
+        else unseen++;
+    });
+    document.getElementById('totalCount').textContent = total;
+    document.getElementById('knownCount').textContent = known;
+    document.getElementById('unknownCount').textContent = unknown;
+    document.getElementById('unseenCount').textContent = unseen;
+    document.getElementById('masteryRate').textContent = total > 0 ? Math.round(known / total * 100) + '%' : '0%';
+}
+
+function updateTotalScore() {
+    const panel = document.getElementById('totalScorePanel');
+    if (scoreRecords.length === 0) { panel.classList.remove('show'); return; }
+    const total = scoreRecords.reduce((s, r) => s + r.score, 0);
+    const max = scoreRecords.reduce((s, r) => s + r.maxScore, 0);
+    const avg = Math.round(total / scoreRecords.length * 10) / 10;
+    const rate = max > 0 ? Math.round(total / max * 100) : 0;
+    const cls = rate >= 80 ? 'high' : rate >= 50 ? 'mid' : 'low';
+    panel.innerHTML = '<div class="big-score ' + cls + '">' + total + '<span style="font-size:24px">/' + max + '</span></div><div class="score-label">📊 累计得分 | 共' + scoreRecords.length + '次批改 | 均分' + avg + '</div><div class="score-detail">得分率 ' + rate + '%</div>';
+    panel.classList.add('show');
+}
+
+function setMode(mode) {
+    currentMode = mode;
+    document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode));
+    const statPanel = document.getElementById('statPanel');
+    const questionArea = document.getElementById('questionArea');
+    const controls = document.getElementById('controls');
+    const statusDots = document.getElementById('statusDots');
+    const gradeSwitch = document.getElementById('gradeModeSwitch');
+    if (mode === 'stats') {
+        statPanel.classList.add('show');
+        questionArea.innerHTML = '';
+        controls.style.display = 'none';
+        statusDots.style.display = 'none';
+        gradeSwitch.style.display = 'none';
+        renderStats();
+    } else {
+        statPanel.classList.remove('show');
+        controls.style.display = 'flex';
+        statusDots.style.display = 'flex';
+        gradeSwitch.style.display = (mode === 'quiz') ? 'flex' : 'none';
+        renderQuestion();
+        renderStatusDots();
+    }
+}
+
+function switchGradeMode(mode) {
+    gradeMode = mode;
+    document.querySelectorAll('#gradeModeSwitch label').forEach(l => l.classList.toggle('active', l.querySelector('input').value === mode));
+    if (mode === 'ai' && !API_KEY) {
+        const k = prompt('🔑 请输入API密钥以使用AI批改：');
+        if (k) { API_KEY = k.trim(); localStorage.setItem('boxue_api_key', API_KEY); }
+        else { gradeMode = 'auto'; document.querySelector('input[value="auto"]').checked = true; document.querySelectorAll('#gradeModeSwitch label').forEach(l => l.classList.toggle('active', l.querySelector('input').value === 'auto')); }
+    }
+}
+
+function renderStats() {
+    const panel = document.getElementById('statPanel');
+    const units = getUnits();
+    let totalKnown = 0, totalUnknown = 0, totalUnseen = 0;
+    ALL_QUESTIONS.forEach(q => {
+        const s = getStatus(q.id);
+        if (s === 'known') totalKnown++;
+        else if (s === 'unknown') totalUnknown++;
+        else totalUnseen++;
+    });
+    let html = '<h3>📊 学习统计</h3><div class="stat-grid">';
+    html += '<div class="stat-card blue"><div class="stat-num">' + TOTAL + '</div><div class="stat-label">总题数</div></div>';
+    html += '<div class="stat-card green"><div class="stat-num">' + totalKnown + '</div><div class="stat-label">✅ 已掌握</div></div>';
+    html += '<div class="stat-card red"><div class="stat-num">' + totalUnknown + '</div><div class="stat-label">❌ 需复习</div></div>';
+    html += '<div class="stat-card orange"><div class="stat-num">' + totalUnseen + '</div><div class="stat-label">📖 未看过</div></div>';
+    html += '</div>';
+    html += '<h3 style="margin-top:20px;">📁 各单元详情</h3><div class="stat-grid">';
+    units.forEach(u => {
+        const qs = getUnitQuestions(u.unit);
+        const total = qs.length;
+        let known = 0;
+        qs.forEach(q => { if (getStatus(q.id) === 'known') known++; });
+        const rate = total > 0 ? Math.round(known / total * 100) + '%' : '0%';
+        html += '<div class="stat-card"><div class="stat-num" style="font-size:20px;color:var(--primary);">' + rate + '</div><div class="stat-label"><strong>' + u.name + '</strong><br>' + known + '/' + total + ' 题</div></div>';
+    });
+    html += '</div>';
+    if (scoreRecords.length > 0) {
+        html += '<h3 style="margin-top:20px;">📝 评分记录</h3>';
+        html += '<div style="max-height:300px;overflow-y:auto;font-size:14px;">';
+        scoreRecords.slice().reverse().forEach(r => {
+            html += '<div style="padding:8px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;">';
+            html += '<span>' + (r.title || '') + '</span>';
+            html += '<span style="font-weight:700;color:' + (r.score >= 8 ? 'var(--success)' : r.score >= 5 ? 'var(--warning)' : 'var(--danger)') + ';">' + r.score + '/' + r.maxScore + ' (' + (r.mode === 'ai' ? '🤖AI' : '📋要点') + ')</span>';
+            html += '</div>';
+        });
+        html += '</div>';
+    }
+    panel.innerHTML = html;
+}
+
+function resetUnitProgress() {
+    if (!confirm('确定要重置当前单元的所有进度吗？')) return;
+    const qs = getUnitQuestions(currentUnit);
+    qs.forEach(q => { delete progress[q.id]; });
+    saveProgressToBackend();
+    updateStats();
+    renderStatusDots();
+    renderQuestion();
+}
+function resetAllProgress() {
+    if (!confirm('确定要重置所有单元的进度吗？此操作不可撤销！')) return;
+    progress = {};
+    saveProgressToBackend();
+    updateStats();
+    renderStatusDots();
+    renderQuestion();
+}
+
+document.addEventListener('keydown', function(e) {
+    if (currentMode === 'stats') return;
+    if (e.target.tagName === 'TEXTAREA') return;
+    switch(e.key) {
+        case ' ': case 'Enter':
+            e.preventDefault();
+            const btn = document.querySelector('.btn-show-answer');
+            if (btn) btn.click();
+            break;
+        case '1':
+            const kBtn = document.querySelector('.btn-known');
+            if (kBtn) kBtn.click();
+            break;
+        case '2':
+            const uBtn = document.querySelector('.btn-unknown');
+            if (uBtn) uBtn.click();
+            break;
+        case 'n': case 'N':
+            nextQuestion();
+            break;
+        case 's': case 'S':
+            const sBtn = document.querySelector('.btn-submit');
+            if (sBtn) sBtn.click();
+            break;
+    }
+});
+
+init();
+</script>
+</body>
+</html>
